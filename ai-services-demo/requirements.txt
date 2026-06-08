@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+openai
+httpx
+pydantic
+pydantic-settings
+python-multipart
+azure-cognitiveservices-speech
+aiofiles
+python-dotenv
