@@ -1,4 +1,4 @@
-import { ChatRequest, ChatResponse, VisionAnalysisResponse, STTResponse } from '@/types';
+import { ChatRequest, ChatResponse, VisionAnalysisResponse, STTResponse, LanguageRequest, SentimentResponse, KeyPhrasesResponse } from '@/types';
 
 // Use relative URLs so requests go through the Next.js rewrite proxy, avoiding CORS.
 const API_BASE = '';
@@ -70,4 +70,22 @@ export async function speechToText(audioFile: Blob): Promise<STTResponse> {
     body: formData,
   });
   return handleResponse<STTResponse>(response);
+}
+
+export async function analyzeSentiment(request: LanguageRequest): Promise<SentimentResponse> {
+  const response = await fetch(`${API_BASE}/api/language/sentiment`, {
+    method: 'POST',
+    headers: getHeaders('application/json'),
+    body: JSON.stringify(request),
+  });
+  return handleResponse<SentimentResponse>(response);
+}
+
+export async function extractKeyPhrases(request: LanguageRequest): Promise<KeyPhrasesResponse> {
+  const response = await fetch(`${API_BASE}/api/language/keyphrases`, {
+    method: 'POST',
+    headers: getHeaders('application/json'),
+    body: JSON.stringify(request),
+  });
+  return handleResponse<KeyPhrasesResponse>(response);
 }

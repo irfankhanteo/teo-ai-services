@@ -7,6 +7,7 @@ import {
   MessageSquare,
   Eye,
   AudioLines,
+  Languages,
   Sparkles,
 } from 'lucide-react';
 
@@ -15,6 +16,7 @@ const navItems = [
   { href: '/chat', label: 'Chat Completion', icon: MessageSquare },
   { href: '/vision', label: 'Vision / OCR', icon: Eye },
   { href: '/speech', label: 'Speech Studio', icon: AudioLines },
+  { href: '/language', label: 'Language', icon: Languages },
 ];
 
 export default function Sidebar() {

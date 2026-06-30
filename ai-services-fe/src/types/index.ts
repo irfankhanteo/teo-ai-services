@@ -78,6 +78,36 @@ export interface STTResponse {
   duration?: number;
 }
 
+// Language types
+export interface LanguageRequest {
+  text: string;
+  language?: string;
+}
+
+export interface SentimentSentence {
+  text: string;
+  sentiment: string;
+  confidence_scores: {
+    positive: number;
+    negative: number;
+    neutral: number;
+  };
+}
+
+export interface SentimentResponse {
+  sentiment: string;
+  confidence_scores: {
+    positive: number;
+    negative: number;
+    neutral: number;
+  };
+  sentences: SentimentSentence[];
+}
+
+export interface KeyPhrasesResponse {
+  key_phrases: string[];
+}
+
 // App types
 export interface ApiError {
   message: string;

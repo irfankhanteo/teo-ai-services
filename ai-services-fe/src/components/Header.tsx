@@ -1,13 +1,14 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, MessageSquare, Eye, AudioLines } from 'lucide-react';
+import { LayoutDashboard, MessageSquare, Eye, AudioLines, Languages } from 'lucide-react';
 
 const pageTitles: Record<string, { label: string; icon: React.ElementType }> = {
   '/': { label: 'Dashboard', icon: LayoutDashboard },
   '/chat': { label: 'Chat Completion', icon: MessageSquare },
   '/vision': { label: 'Vision / OCR', icon: Eye },
   '/speech': { label: 'Speech Studio', icon: AudioLines },
+  '/language': { label: 'Language', icon: Languages },
 };
 
 export default function Header() {
