@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from app.api import chat, speech, vision, rag
 from app.core.config import get_settings
 from app.core.logging import logger
+from app.api import language  # Import the new router
 
 settings = get_settings()
 
@@ -15,7 +16,7 @@ app.include_router(chat.router, prefix="/api")
 app.include_router(speech.router, prefix="/api")
 app.include_router(vision.router, prefix="/api")
 app.include_router(rag.router, prefix="/api")
-
+app.include_router(language.router, prefix="/api")
 
 @app.get("/")
 async def root():
