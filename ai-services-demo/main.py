@@ -1,10 +1,9 @@
 from fastapi import FastAPI
 
-from app.api import chat, speech, vision, rag
+from app.api import chat, speech, vision, rag, ml
 from app.core.config import get_settings
 from app.core.logging import logger
 from app.api import language  # Import the new router
-from app.api import ml
 
 settings = get_settings()
 

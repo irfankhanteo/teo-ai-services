@@ -22,7 +22,9 @@ class AzureLanguageService:
             raise ValueError("Azure Language credentials are missing or invalid.")
             
         response = self.client.analyze_sentiment(documents=[text], language=language)
-        result = response[0]
+        # Convert ItemPaged to list
+        documents = list(response)
+        result = documents[0]
         
         if result.is_error:
             raise Exception(result.error.message)
@@ -42,12 +44,84 @@ class AzureLanguageService:
             raise ValueError("Azure Language credentials are missing or invalid.")
             
         response = self.client.extract_key_phrases(documents=[text], language=language)
-        result = response[0]
+        documents = list(response)
+        result = documents[0]
         
         if result.is_error:
             raise Exception(result.error.message)
             
         return result.key_phrases
+
+    def recognize_entities(self, text: str, language: str = "en") -> list:
+        """Calls Azure SDK to recognize named entities (people, places, organizations, etc.)."""
+        if not self.is_configured():
+            raise ValueError("Azure Language credentials are missing or invalid.")
+            
+        response = self.client.recognize_entities(documents=[text], language=language)
+        documents = list(response)
+        result = documents[0]
+        
+        if result.is_error:
+            raise Exception(result.error.message)
+            
+        return [
+            {
+                "text": entity.text,
+                "category": entity.category,
+                "subcategory": entity.subcategory,
+                "confidence_score": entity.confidence_score,
+                "offset": entity.offset,
+                "length": entity.length
+            }
+            for entity in result.entities
+        ]
+
+    def recognize_pii_entities(self, text: str, language: str = "en") -> list:
+        """Calls Azure SDK to recognize PII entities (emails, phone numbers, SSNs, etc.)."""
+        if not self.is_configured():
+            raise ValueError("Azure Language credentials are missing or invalid.")
+            
+        response = self.client.recognize_pii_entities(documents=[text], language=language)
+        documents = list(response)
+        result = documents[0]
+        
+        if result.is_error:
+            raise Exception(result.error.message)
+            
+        return [
+            {
+                "text": entity.text,
+                "category": entity.category,
+                "subcategory": entity.subcategory,
+                "confidence_score": entity.confidence_score,
+                "offset": entity.offset,
+                "length": entity.length
+            }
+            for entity in result.entities
+        ]
+
+    def extract_summary(self, text: str, language: str = "en", sentence_count: int = 3) -> list:
+        """Calls Azure SDK to extract a summary of the text."""
+        if not self.is_configured():
+            raise ValueError("Azure Language credentials are missing or invalid.")
+            
+        poller = self.client.begin_extract_summary(documents=[text], language=language, max_sentence_count=sentence_count)
+        response = poller.result()
+        documents = list(response)
+        result = documents[0]
+        
+        if result.is_error:
+            raise Exception(result.error.message)
+            
+        return [
+            {
+                "text": sentence.text,
+                "rank_score": sentence.rank_score,
+                "offset": sentence.offset,
+                "length": sentence.length
+            }
+            for sentence in result.sentences
+        ]
 
 # Instantiate a single reusable instance of the service
 azure_language_service = AzureLanguageService()

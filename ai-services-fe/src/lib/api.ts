@@ -1,4 +1,4 @@
-import { ChatRequest, ChatResponse, VisionAnalysisResponse, STTResponse, LanguageRequest, SentimentResponse, KeyPhrasesResponse, MLScoreRequest, MLScoreResponse } from '@/types';
+import { ChatRequest, ChatResponse, VisionAnalysisResponse, STTResponse, LanguageRequest, SentimentResponse, KeyPhrasesResponse, MLScoreRequest, MLScoreResponse, EntitiesResponse, PIIResponse, SummaryResponse, Voice, VoicesResponse, TranslationResponse } from '@/types';
 
 // Use relative URLs so requests go through the Next.js rewrite proxy, avoiding CORS.
 const API_BASE = '';
@@ -90,6 +90,33 @@ export async function extractKeyPhrases(request: LanguageRequest): Promise<KeyPh
   return handleResponse<KeyPhrasesResponse>(response);
 }
 
+export async function recognizeEntities(request: LanguageRequest): Promise<EntitiesResponse> {
+  const response = await fetch(`${API_BASE}/api/language/entities`, {
+    method: 'POST',
+    headers: getHeaders('application/json'),
+    body: JSON.stringify(request),
+  });
+  return handleResponse<EntitiesResponse>(response);
+}
+
+export async function recognizePII(request: LanguageRequest): Promise<PIIResponse> {
+  const response = await fetch(`${API_BASE}/api/language/pii`, {
+    method: 'POST',
+    headers: getHeaders('application/json'),
+    body: JSON.stringify(request),
+  });
+  return handleResponse<PIIResponse>(response);
+}
+
+export async function extractSummary(request: LanguageRequest): Promise<SummaryResponse> {
+  const response = await fetch(`${API_BASE}/api/language/summary`, {
+    method: 'POST',
+    headers: getHeaders('application/json'),
+    body: JSON.stringify(request),
+  });
+  return handleResponse<SummaryResponse>(response);
+}
+
 export async function scoreMLModel(request: MLScoreRequest): Promise<MLScoreResponse> {
   const response = await fetch(`${API_BASE}/api/ml/score`, {
     method: 'POST',
@@ -97,4 +124,48 @@ export async function scoreMLModel(request: MLScoreRequest): Promise<MLScoreResp
     body: JSON.stringify(request),
   });
   return handleResponse<MLScoreResponse>(response);
+}
+
+export async function getVoices(): Promise<VoicesResponse> {
+  const response = await fetch(`${API_BASE}/api/speech/voices`, {
+    method: 'GET',
+    headers: getHeaders(),
+  });
+  return handleResponse<VoicesResponse>(response);
+}
+
+export async function translateSpeech(
+  audioFile: Blob,
+  sourceLanguage: string,
+  targetLanguage: string,
+  voiceName?: string
+): Promise<TranslationResponse> {
+  const formData = new FormData();
+  formData.append('file', audioFile, 'recording.wav');
+  formData.append('source_language', sourceLanguage);
+  formData.append('target_language', targetLanguage);
+  if (voiceName) {
+    formData.append('voice_name', voiceName);
+  }
+  const response = await fetch(`${API_BASE}/api/speech/translate`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: formData,
+  });
+  return handleResponse<TranslationResponse>(response);
+}
+
+export async function speechToTextWithLanguage(
+  audioFile: Blob,
+  language: string
+): Promise<STTResponse> {
+  const formData = new FormData();
+  formData.append('file', audioFile, 'recording.wav');
+  formData.append('language', language);
+  const response = await fetch(`${API_BASE}/api/speech/stt`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: formData,
+  });
+  return handleResponse<STTResponse>(response);
 }

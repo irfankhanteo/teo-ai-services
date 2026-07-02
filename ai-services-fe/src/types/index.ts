@@ -78,10 +78,29 @@ export interface STTResponse {
   duration?: number;
 }
 
+export interface Voice {
+  name: string;
+  locale: string;
+  short_name: string;
+  gender: string;
+  local_name: string;
+}
+
+export interface VoicesResponse {
+  voices: Voice[];
+}
+
+export interface TranslationResponse {
+  text: string;
+  translations: Record<string, string>;
+  audio: string;  // Base64-encoded audio
+}
+
 // Language types
 export interface LanguageRequest {
   text: string;
   language?: string;
+  sentence_count?: number;
 }
 
 export interface SentimentSentence {
@@ -106,6 +125,43 @@ export interface SentimentResponse {
 
 export interface KeyPhrasesResponse {
   key_phrases: string[];
+}
+
+export interface Entity {
+  text: string;
+  category: string;
+  subcategory?: string;
+  confidence_score: number;
+  offset: number;
+  length: number;
+}
+
+export interface EntitiesResponse {
+  entities: Entity[];
+}
+
+export interface PIIEntity {
+  text: string;
+  category: string;
+  subcategory?: string;
+  confidence_score: number;
+  offset: number;
+  length: number;
+}
+
+export interface PIIResponse {
+  pii_entities: PIIEntity[];
+}
+
+export interface SummarySentence {
+  text: string;
+  rank_score: number;
+  offset: number;
+  length: number;
+}
+
+export interface SummaryResponse {
+  summary: SummarySentence[];
 }
 
 // App types

@@ -11,12 +11,30 @@ import {
   Trash2,
   ChevronDown,
   ChevronUp,
+  User,
+  MapPin,
+  Building,
+  AlertTriangle,
+  FileText
 } from 'lucide-react';
 import GlassCard from '@/components/GlassCard';
 import Button from '@/components/Button';
 import LoadingSpinner from '@/components/LoadingSpinner';
-import { analyzeSentiment, extractKeyPhrases } from '@/lib/api';
-import { SentimentResponse, KeyPhrasesResponse, ServiceStatus } from '@/types';
+import {
+  analyzeSentiment,
+  extractKeyPhrases,
+  recognizeEntities,
+  recognizePII,
+  extractSummary
+} from '@/lib/api';
+import {
+  SentimentResponse,
+  KeyPhrasesResponse,
+  EntitiesResponse,
+  PIIResponse,
+  SummaryResponse,
+  ServiceStatus
+} from '@/types';
 
 const sentimentConfig: Record<string, { icon: React.ElementType; color: string; bg: string }> = {
   positive: { icon: Smile, color: 'text-success', bg: 'bg-success/15' },
@@ -25,12 +43,25 @@ const sentimentConfig: Record<string, { icon: React.ElementType; color: string; 
   mixed: { icon: Shuffle, color: 'text-accent', bg: 'bg-accent-muted' },
 };
 
+const categoryIcons: Record<string, React.ElementType> = {
+  Person: User,
+  Location: MapPin,
+  Organization: Building,
+  Email: FileText,
+  PhoneNumber: FileText,
+  PersonName: User,
+  Address: MapPin,
+  Company: Building,
+};
+
 export default function LanguagePage() {
   const [text, setText] = useState('');
   const [sentimentResult, setSentimentResult] = useState<SentimentResponse | null>(null);
   const [keyPhrasesResult, setKeyPhrasesResult] = useState<KeyPhrasesResponse | null>(null);
-  const [sentimentStatus, setSentimentStatus] = useState<ServiceStatus>('idle');
-  const [keyPhrasesStatus, setKeyPhrasesStatus] = useState<ServiceStatus>('idle');
+  const [entitiesResult, setEntitiesResult] = useState<EntitiesResponse | null>(null);
+  const [piiResult, setPiiResult] = useState<PIIResponse | null>(null);
+  const [summaryResult, setSummaryResult] = useState<SummaryResponse | null>(null);
+  const [status, setStatus] = useState<ServiceStatus>('idle');
   const [error, setError] = useState<string | null>(null);
   const [showSentences, setShowSentences] = useState(false);
 
@@ -42,36 +73,37 @@ export default function LanguagePage() {
     setError(null);
     setSentimentResult(null);
     setKeyPhrasesResult(null);
-    setSentimentStatus('loading');
-    setKeyPhrasesStatus('loading');
+    setEntitiesResult(null);
+    setPiiResult(null);
+    setSummaryResult(null);
+    setStatus('loading');
 
     const request = { text: trimmed };
 
-    // Run both in parallel
-    const sentimentPromise = analyzeSentiment(request)
-      .then((res) => {
-        setSentimentResult(res);
-        setSentimentStatus('success');
-      })
-      .catch((err) => {
-        setSentimentStatus('error');
-        throw err;
-      });
-
-    const keyPhrasesPromise = extractKeyPhrases(request)
-      .then((res) => {
-        setKeyPhrasesResult(res);
-        setKeyPhrasesStatus('success');
-      })
-      .catch((err) => {
-        setKeyPhrasesStatus('error');
-        throw err;
-      });
-
     try {
-      await Promise.all([sentimentPromise, keyPhrasesPromise]);
+      const [
+        sentimentRes,
+        keyPhrasesRes,
+        entitiesRes,
+        piiRes,
+        summaryRes
+      ] = await Promise.all([
+        analyzeSentiment(request),
+        extractKeyPhrases(request),
+        recognizeEntities(request),
+        recognizePII(request),
+        extractSummary(request)
+      ]);
+
+      setSentimentResult(sentimentRes);
+      setKeyPhrasesResult(keyPhrasesRes);
+      setEntitiesResult(entitiesRes);
+      setPiiResult(piiRes);
+      setSummaryResult(summaryRes);
+      setStatus('success');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Analysis failed');
+      setStatus('error');
     }
   }
 
@@ -79,17 +111,18 @@ export default function LanguagePage() {
     setText('');
     setSentimentResult(null);
     setKeyPhrasesResult(null);
-    setSentimentStatus('idle');
-    setKeyPhrasesStatus('idle');
+    setEntitiesResult(null);
+    setPiiResult(null);
+    setSummaryResult(null);
+    setStatus('idle');
     setError(null);
     setShowSentences(false);
   }
 
-  const isLoading = sentimentStatus === 'loading' || keyPhrasesStatus === 'loading';
-  const hasResults = sentimentResult || keyPhrasesResult;
+  const hasResults = status === 'success';
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6">
       {/* Input */}
       <GlassCard>
         <form onSubmit={handleAnalyze} className="space-y-4">
@@ -97,8 +130,8 @@ export default function LanguagePage() {
             id="language-input"
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="Enter text to analyze sentiment and extract key phrases…"
-            rows={5}
+            placeholder="Enter text to analyze sentiment, extract key phrases, recognize entities, detect PII, and summarize..."
+            rows={6}
             className="w-full rounded-xl bg-surface border border-card-border px-4 py-3 text-sm text-foreground placeholder:text-muted resize-none focus:outline-none focus:ring-2 focus:ring-accent/50"
           />
 
@@ -107,15 +140,15 @@ export default function LanguagePage() {
               id="analyze-btn"
               type="submit"
               className="flex-1"
-              disabled={!text.trim() || isLoading}
+              disabled={!text.trim() || status === 'loading'}
             >
-              {isLoading ? (
+              {status === 'loading' ? (
                 <>
-                  <LoadingSpinner size="sm" /> Analyzing…
+                  <LoadingSpinner size="sm" /> Analyzing...
                 </>
               ) : (
                 <>
-                  <Send className="h-4 w-4" /> Analyze
+                  <Send className="h-4 w-4" /> Analyze All
                 </>
               )}
             </Button>
@@ -254,6 +287,94 @@ export default function LanguagePage() {
                 </div>
               ) : (
                 <p className="text-sm text-muted">No key phrases found.</p>
+              )}
+            </GlassCard>
+          )}
+
+          {/* Named Entities */}
+          {entitiesResult && (
+            <GlassCard className="space-y-4">
+              <h3 className="text-sm font-semibold flex items-center gap-2">
+                <User className="h-4 w-4 text-accent" /> Named Entities
+              </h3>
+
+              {entitiesResult.entities.length > 0 ? (
+                <div className="space-y-2 max-h-80 overflow-y-auto">
+                  {entitiesResult.entities.map((entity, i) => {
+                    const Icon = categoryIcons[entity.category] || User;
+                    return (
+                      <div key={i} className="flex items-start gap-2 p-2 rounded-lg bg-surface">
+                        <Icon className="h-4 w-4 text-muted mt-0.5 flex-shrink-0" />
+                        <div className="flex-1">
+                          <p className="text-sm text-foreground font-medium">{entity.text}</p>
+                          <div className="flex items-center gap-2 text-xs text-muted">
+                            <span>{entity.category}</span>
+                            {entity.subcategory && <span>• {entity.subcategory}</span>}
+                            <span>• {(entity.confidence_score * 100).toFixed(0)}%</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-sm text-muted">No entities found.</p>
+              )}
+            </GlassCard>
+          )}
+
+          {/* PII Detection */}
+          {piiResult && (
+            <GlassCard className="space-y-4">
+              <h3 className="text-sm font-semibold flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-accent" /> PII Detection
+              </h3>
+
+              {piiResult.pii_entities.length > 0 ? (
+                <div className="space-y-2 max-h-80 overflow-y-auto">
+                  {piiResult.pii_entities.map((entity, i) => {
+                    const Icon = categoryIcons[entity.category] || AlertTriangle;
+                    return (
+                      <div key={i} className="flex items-start gap-2 p-2 rounded-lg bg-danger/5 border border-danger/20">
+                        <Icon className="h-4 w-4 text-danger mt-0.5 flex-shrink-0" />
+                        <div className="flex-1">
+                          <p className="text-sm text-foreground font-medium">{entity.text}</p>
+                          <div className="flex items-center gap-2 text-xs text-muted">
+                            <span>{entity.category}</span>
+                            {entity.subcategory && <span>• {entity.subcategory}</span>}
+                            <span>• {(entity.confidence_score * 100).toFixed(0)}%</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-sm text-muted">No PII detected.</p>
+              )}
+            </GlassCard>
+          )}
+
+          {/* Summary */}
+          {summaryResult && (
+            <GlassCard className="space-y-4 lg:col-span-2">
+              <h3 className="text-sm font-semibold flex items-center gap-2">
+                <FileText className="h-4 w-4 text-accent" /> Text Summary
+              </h3>
+
+              {summaryResult.summary.length > 0 ? (
+                <div className="space-y-3">
+                  {summaryResult.summary.map((sentence, i) => (
+                    <div key={i} className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-accent-muted flex items-center justify-center text-xs font-semibold text-accent-hover">
+                        {i + 1}
+                      </div>
+                      <p className="text-sm text-foreground leading-relaxed">{sentence.text}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted">No summary available.</p>
               )}
             </GlassCard>
           )}
