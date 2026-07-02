@@ -1,4 +1,4 @@
-import { ChatRequest, ChatResponse, VisionAnalysisResponse, STTResponse, LanguageRequest, SentimentResponse, KeyPhrasesResponse } from '@/types';
+import { ChatRequest, ChatResponse, VisionAnalysisResponse, STTResponse, LanguageRequest, SentimentResponse, KeyPhrasesResponse, MLScoreRequest, MLScoreResponse } from '@/types';
 
 // Use relative URLs so requests go through the Next.js rewrite proxy, avoiding CORS.
 const API_BASE = '';
@@ -88,4 +88,13 @@ export async function extractKeyPhrases(request: LanguageRequest): Promise<KeyPh
     body: JSON.stringify(request),
   });
   return handleResponse<KeyPhrasesResponse>(response);
+}
+
+export async function scoreMLModel(request: MLScoreRequest): Promise<MLScoreResponse> {
+  const response = await fetch(`${API_BASE}/api/ml/score`, {
+    method: 'POST',
+    headers: getHeaders('application/json'),
+    body: JSON.stringify(request),
+  });
+  return handleResponse<MLScoreResponse>(response);
 }

@@ -34,6 +34,10 @@ class Settings(BaseSettings):
     # Security
     api_key: str = os.getenv("API_KEY", "")
 
+    # Azure Machine Learning
+    azure_ml_endpoint: str = os.getenv("AZURE_ML_ENDPOINT", "")
+    azure_ml_api_key: str = os.getenv("AZURE_ML_API_KEY", "")
+
     model_config = {"env_file": ".env", "extra": "ignore"}
 
 

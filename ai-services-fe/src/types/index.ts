@@ -115,4 +115,37 @@ export interface ApiError {
   detail?: string;
 }
 
+// ML types
+export interface MLScoreRequest {
+  data: {
+    Area: number;
+    Bedrooms: number;
+    Property_Type: string;
+    City: string;
+    "Distance_to_City_Center (km)": number;
+    "Age_of_House (years)": number;
+    "Floors/Stories": number;
+    Condition: string;
+  };
+}
+
+export interface MLScoreResponse {
+  result: {
+    Results: {
+      WebServiceOutput0: Array<{
+        Area: number;
+        Bedrooms: number;
+        Property_Type: string;
+        City: string;
+        "Distance_to_City_Center (km)": number;
+        "Age_of_House (years)": number;
+        "Floors/Stories": number;
+        Condition: string;
+        Price: number;
+        "Scored Labels": number;
+      }>;
+    };
+  };
+}
+
 export type ServiceStatus = 'idle' | 'loading' | 'success' | 'error';

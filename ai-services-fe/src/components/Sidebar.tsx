@@ -9,6 +9,7 @@ import {
   AudioLines,
   Languages,
   Sparkles,
+  Activity,
 } from 'lucide-react';
 
 const navItems = [
@@ -17,6 +18,7 @@ const navItems = [
   { href: '/vision', label: 'Vision / OCR', icon: Eye },
   { href: '/speech', label: 'Speech Studio', icon: AudioLines },
   { href: '/language', label: 'Language', icon: Languages },
+  { href: '/ml', label: 'ML Prediction', icon: Activity },
 ];
 
 export default function Sidebar() {

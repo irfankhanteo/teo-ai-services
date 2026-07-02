@@ -1,4 +1,4 @@
-import { MessageSquare, Eye, AudioLines, Languages, Zap } from 'lucide-react';
+import { MessageSquare, Eye, AudioLines, Languages, Zap, Activity } from 'lucide-react';
 import GlassCard from '@/components/GlassCard';
 import Link from 'next/link';
 
@@ -30,6 +30,13 @@ const services = [
     description: 'Analyze sentiment and extract key phrases from text using Azure AI Language.',
     icon: Languages,
     color: 'text-cyan-400',
+  },
+  {
+    href: '/ml',
+    title: 'ML Prediction',
+    description: 'Predict real estate prices using machine learning models.',
+    icon: Activity,
+    color: 'text-rose-400',
   },
 ];
 
